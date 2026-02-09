@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>Room Monitor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Kanit', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: #fff;
+    }
+
+    .card {
+      width: 340px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-weight: 600;
+    }
+
+    .time {
+      font-size: 26px;
+      margin-bottom: 20px;
+    }
+
+    .status {
+      display: flex;
+      justify-content: space-between;
+      margin: 12px 0;
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.25);
+      align-items: center;
+    }
+
+    .label {
+      font-size: 18px;
+    }
+
+    .value {
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .on {
+      color: #00ff9c;
+    }
+
+    .off {
+      color: #ff6b6b;
+    }
+
+    .footer {
+      margin-top: 15px;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+      .toggle {
+      width: 100%;
+      margin-top: 15px;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ff6b6b, #ff4757);
+      color: #fff;
+      transition: 0.3s;
+    }
+
+    .toggle.on {
+      background: linear-gradient(135deg, #2ed573, #1e90ff);
+    }
+
+    .toggle:hover {
+      opacity: 0.85;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>สถานะห้อง</h1>
+
+    <div class="time" id="time">--:--:--</div>
+
+    <div class="status">
+      <div class="label">👥 จำนวนคน</div>
+      <div class="value" id="people">0</div>
+    </div>
+
+    <div class="status">
+      <div class="label">💡 ไฟ</div>
+      <div class="value" id="light">OFF</div>
+    </div>
+
+    <div class="status">
+      <div class="label">⚙️ ระบบ</div>
+      <div class="value" id="system">ON</div>
+    </div>
+
+    <button id="toggleSystem" class="toggle">ปิดระบบ</button>
+    </div>
+
+    <div class="footer">Realtime จาก Firebase</div>
+  </div>
+
+  <script>
+    // ===== Firebase Config =====
+    const firebaseConfig = {
+  apiKey: "AIzaSyAY7dNXGLfeirlYUR_clmcM0NSUFJibvGM",
+  databaseURL: "https://led01-fed0f-default-rtdb.asia-southeast1.firebasedatabase.app/"
+};
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const peopleEl = document.getElementById('people');
+    const lightEl  = document.getElementById('light');
+    const systemEl = document.getElementById('system');
+    const toggleBtn = document.getElementById('toggleSystem');
+    const timeEl   = document.getElementById('time');
+
+    // ===== Realtime Time =====
+    setInterval(() => {
+      const now = new Date();
+      timeEl.textContent = now.toLocaleTimeString('th-TH');
+    }, 1000);
+
+    // ===== Firebase Listeners =====
+    db.ref('room/people').on('value', snap => {
+      peopleEl.textContent = snap.val() ?? 0;
+    });
+
+    db.ref('room/light').on('value', snap => {
+      const on = snap.val();
+      lightEl.textContent = on ? 'ON' : 'OFF';
+      lightEl.className = 'value ' + (on ? 'on' : 'off');
+    });
+
+    db.ref('room/system_status').on('value', snap => {
+      const on = snap.val();
+      systemEl.textContent = on ? 'ON' : 'OFF';
+      systemEl.className = 'value ' + (on ? 'on' : 'off');
+
+      toggleBtn.textContent = on ? 'ปิดระบบ' : 'เปิดระบบ';
+      toggleBtn.className = 'toggle ' + (on ? 'on' : '');
+    });
+
+    toggleBtn.addEventListener('click', () => {
+      const isOn = systemEl.textContent === 'ON';
+      db.ref('room/system_status').set(!isOn);
+    });
+      systemEl.textContent = on ? 'ON' : 'OFF';
+      systemEl.className = 'value ' + (on ? 'on' : 'off');
+    });
+  </script>
+
+</body>
+</html>
