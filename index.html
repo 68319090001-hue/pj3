@@ -1,185 +1,231 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <title>Room Monitor</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room Monitor & Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
 
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+        .container {
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+        }
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+        h2 { margin-bottom: 20px; color: #444; }
 
-  <style>
-    * {
-      box-sizing: border-box;
-      font-family: 'Kanit', sans-serif;
-    }
+        .status-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: linear-gradient(135deg, #1e3c72, #2a5298);
-      color: #fff;
-    }
+        .icon-box {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
 
-    .card {
-      width: 340px;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(12px);
-      border-radius: 20px;
-      padding: 24px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      text-align: center;
-    }
+        .light-on { background-color: #fff3cd; color: #ffc107; box-shadow: 0 0 10px #ffc107; }
+        .light-off { background-color: #e9ecef; color: #6c757d; }
+        
+        .data-value { font-size: 24px; font-weight: bold; }
+        .data-label { font-size: 14px; color: #666; }
 
-    h1 {
-      margin: 0 0 10px;
-      font-weight: 600;
-    }
+        .switch-container {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
 
-    .time {
-      font-size: 26px;
-      margin-bottom: 20px;
-    }
+        /* Toggle Switch CSS */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #2196F3; }
+        input:checked + .slider:before { transform: translateX(26px); }
 
-    .status {
-      display: flex;
-      justify-content: space-between;
-      margin: 12px 0;
-      padding: 14px;
-      border-radius: 12px;
-      background: rgba(0,0,0,0.25);
-      align-items: center;
-    }
-
-    .label {
-      font-size: 18px;
-    }
-
-    .value {
-      font-size: 22px;
-      font-weight: 600;
-    }
-
-    .on {
-      color: #00ff9c;
-    }
-
-    .off {
-      color: #ff6b6b;
-    }
-
-    .footer {
-      margin-top: 15px;
-      font-size: 14px;
-      opacity: 0.8;
-    }
-      .toggle {
-      width: 100%;
-      margin-top: 15px;
-      padding: 12px;
-      border: none;
-      border-radius: 12px;
-      font-size: 18px;
-      font-weight: 600;
-      cursor: pointer;
-      background: linear-gradient(135deg, #ff6b6b, #ff4757);
-      color: #fff;
-      transition: 0.3s;
-    }
-
-    .toggle.on {
-      background: linear-gradient(135deg, #2ed573, #1e90ff);
-    }
-
-    .toggle:hover {
-      opacity: 0.85;
-    }
-  </style>
+        .system-status-text {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #2196F3;
+        }
+        
+        .time-display {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 20px;
+            background: #eee;
+            padding: 5px 15px;
+            border-radius: 50px;
+            display: inline-block;
+        }
+    </style>
 </head>
 <body>
 
-  <div class="card">
-    <h1>สถานะห้อง</h1>
+    <div class="container">
+        <h2>ระบบควบคุมห้อง</h2>
+        
+        <div class="time-display" id="clock">00:00:00</div>
 
-    <div class="time" id="time">--:--:--</div>
+        <div class="status-card">
+            <div style="text-align: left;">
+                <div class="data-label">จำนวนคนในห้อง</div>
+                <div class="data-value" id="peopleCount">0</div>
+            </div>
+            <div class="icon-box" style="background: #e3f2fd; color: #2196f3;">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
 
-    <div class="status">
-      <div class="label">👥 จำนวนคน</div>
-      <div class="value" id="people">0</div>
+        <div class="status-card">
+            <div style="text-align: left;">
+                <div class="data-label">สถานะไฟ</div>
+                <div class="data-value" id="lightStatusText">OFF</div>
+            </div>
+            <div class="icon-box light-off" id="lightIcon">
+                <i class="fas fa-lightbulb"></i>
+            </div>
+        </div>
+
+        <div class="switch-container">
+            <p>ควบคุมระบบ (System Control)</p>
+            <label class="switch">
+                <input type="checkbox" id="systemToggle">
+                <span class="slider"></span>
+            </label>
+            <div class="system-status-text" id="systemText">รอการเชื่อมต่อ...</div>
+        </div>
     </div>
 
-    <div class="status">
-      <div class="label">💡 ไฟ</div>
-      <div class="value" id="light">OFF</div>
-    </div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-    <div class="status">
-      <div class="label">⚙️ ระบบ</div>
-      <div class="value" id="system">ON</div>
-    </div>
+    <script>
+        // --- 1. การตั้งค่า Firebase (ใช้ค่าเดียวกับใน Arduino) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAY7dNXGLfeirlYUR_clmcM0NSUFJibvGM",
+            databaseURL: "https://led01-fed0f-default-rtdb.asia-southeast1.firebasedatabase.app/"
+        };
 
-    <button id="toggleSystem" class="toggle">ปิดระบบ</button>
-    </div>
+        // เริ่มต้น Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-    <div class="footer">Realtime จาก Firebase</div>
-  </div>
+        // อ้างอิง Path ใน Database
+        const peopleRef = db.ref('room/people');
+        const lightRef = db.ref('room/light');
+        const systemRef = db.ref('room/system'); // ใช้สำหรับสั่งงาน (Write)
 
-  <script>
-    // ===== Firebase Config =====
-    const firebaseConfig = {
-  apiKey: "AIzaSyAY7dNXGLfeirlYUR_clmcM0NSUFJibvGM",
-  databaseURL: "https://led01-fed0f-default-rtdb.asia-southeast1.firebasedatabase.app/"
-};
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+        // --- 2. ส่วนการอ่านค่า (Read) และแสดงผล ---
+        
+        // อ่านจำนวนคน
+        peopleRef.on('value', (snapshot) => {
+            const count = snapshot.val() || 0;
+            document.getElementById('peopleCount').innerText = count;
+        });
 
-    const peopleEl = document.getElementById('people');
-    const lightEl  = document.getElementById('light');
-    const systemEl = document.getElementById('system');
-    const toggleBtn = document.getElementById('toggleSystem');
-    const timeEl   = document.getElementById('time');
+        // อ่านสถานะไฟ
+        lightRef.on('value', (snapshot) => {
+            const isLightOn = snapshot.val();
+            const statusText = document.getElementById('lightStatusText');
+            const icon = document.getElementById('lightIcon');
 
-    // ===== Realtime Time =====
-    setInterval(() => {
-      const now = new Date();
-      timeEl.textContent = now.toLocaleTimeString('th-TH');
-    }, 1000);
+            if (isLightOn) {
+                statusText.innerText = "ON";
+                statusText.style.color = "#ffc107";
+                icon.className = "icon-box light-on";
+            } else {
+                statusText.innerText = "OFF";
+                statusText.style.color = "#6c757d";
+                icon.className = "icon-box light-off";
+            }
+        });
 
-    // ===== Firebase Listeners =====
-    db.ref('room/people').on('value', snap => {
-      peopleEl.textContent = snap.val() ?? 0;
-    });
+        // อ่านสถานะสวิตช์ระบบ (เพื่อให้ปุ่มบนเว็บตรงกับ Database เสมอ)
+        systemRef.on('value', (snapshot) => {
+            const isSystemOn = snapshot.val();
+            const toggle = document.getElementById('systemToggle');
+            const label = document.getElementById('systemText');
 
-    db.ref('room/light').on('value', snap => {
-      const on = snap.val();
-      lightEl.textContent = on ? 'ON' : 'OFF';
-      lightEl.className = 'value ' + (on ? 'on' : 'off');
-    });
+            // อัปเดต UI โดยไม่ไปทริกเกอร์เหตุการณ์ click
+            toggle.checked = isSystemOn; 
+            
+            if (isSystemOn) {
+                label.innerText = "ระบบทำงาน (Active)";
+                label.style.color = "#2196F3";
+            } else {
+                label.innerText = "ปิดระบบ (Inactive)";
+                label.style.color = "#F44336";
+            }
+        });
 
-    db.ref('room/system_status').on('value', snap => {
-      const on = snap.val();
-      systemEl.textContent = on ? 'ON' : 'OFF';
-      systemEl.className = 'value ' + (on ? 'on' : 'off');
+        // --- 3. ส่วนการสั่งงาน (Write) ---
+        
+        // เมื่อกดปุ่มสวิตช์
+        document.getElementById('systemToggle').addEventListener('change', function() {
+            // ส่งค่า true/false ไปยัง Firebase path 'room/system'
+            systemRef.set(this.checked);
+        });
 
-      toggleBtn.textContent = on ? 'ปิดระบบ' : 'เปิดระบบ';
-      toggleBtn.className = 'toggle ' + (on ? 'on' : '');
-    });
+        // --- 4. นาฬิกาดิจิตอล (เวลาปัจจุบันของเครื่องผู้ใช้) ---
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('th-TH');
+            document.getElementById('clock').innerText = timeString;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
 
-    toggleBtn.addEventListener('click', () => {
-      const isOn = systemEl.textContent === 'ON';
-      db.ref('room/system_status').set(!isOn);
-    });
-      systemEl.textContent = on ? 'ON' : 'OFF';
-      systemEl.className = 'value ' + (on ? 'on' : 'off');
-    });
-  </script>
-
+    </script>
 </body>
 </html>
